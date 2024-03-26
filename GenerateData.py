@@ -1,12 +1,13 @@
 import numpy as np
 import numpy.random as rand
+import Princeton
 
 def lorentzian(phi, gamma, x0 = 0.5):
     return (gamma/((phi - x0)**2 + gamma**2))/np.pi
 
 
 def generate(n_samples, n_bins, noise = True):
-    max_subpulses = 5
+    max_subpulses = 2
     phi = np.linspace(0, 1, n_bins)
     pulses = np.zeros((n_samples, n_bins))
     locs = np.zeros((n_samples, max_subpulses + 1))
@@ -19,8 +20,8 @@ def generate(n_samples, n_bins, noise = True):
         pulse /= max(pulse)
         
 
-        subpulses = rand.randint(0, max_subpulses + 1)
-
+        #subpulses = rand.randint(0, max_subpulses + 1)
+        subpulses = max_subpulses 
         #subpulses
         for j in range(subpulses):
             gamma_sub = rand.choice(np.linspace(0.001, 0.1, 1000))
@@ -38,7 +39,6 @@ def generate(n_samples, n_bins, noise = True):
             rms = rand.choice(np.linspace(0.001, 0.3, 3000))
             pulse += rand.normal(0, rms, n_bins)
 
-        #pulse /= max(pulse) 
         pulses[i] = pulse
         locs[i, 0] = 0.5
         gammas[i, 0] = gamma
