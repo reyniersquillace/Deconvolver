@@ -7,7 +7,7 @@ def lorentzian(phi, gamma, x0 = 0.5):
 
 
 def generate(n_samples, n_bins, noise = True):
-    max_subpulses = 2
+    max_subpulses = 1
     phi = np.linspace(0, 1, n_bins)
     pulses = np.zeros((n_samples, n_bins))
     locs = np.zeros((n_samples, max_subpulses + 1))
@@ -16,16 +16,17 @@ def generate(n_samples, n_bins, noise = True):
 
     for i in range(n_samples):
         gamma = rand.choice(np.linspace(0.001, 0.1, 1000))
-        pulse = lorentzian(phi, gamma)
-        pulse /= max(pulse)
-        
+        #pulse = lorentzian(phi, gamma)
+        #pulse /= max(pulse)
+        pulse = np.zeros(1024)
 
         #subpulses = rand.randint(0, max_subpulses + 1)
         subpulses = max_subpulses 
         #subpulses
         for j in range(subpulses):
             gamma_sub = rand.choice(np.linspace(0.001, 0.1, 1000))
-            loc_sub = 0.5 + rand.normal(0, 0.1)
+            #loc_sub = 0.5 + rand.normal(0, 0.1)
+            loc_sub = rand.choice(np.linspace(0.1, 0.9, 1024))
             subpulse = lorentzian(phi, gamma_sub,loc_sub)
             amp = rand.choice(np.linspace(0.1, 0.9))
             subpulse *= amp/max(subpulse)
