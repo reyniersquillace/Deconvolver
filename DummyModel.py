@@ -5,32 +5,54 @@ import numpy as np
 import torch
 import tqdm
 from sklearn.model_selection import train_test_split
-#from sklearn.preprocessing import StandardScaler
+from optuna.trial import Trial as trial
 
 data = np.load('DummyData.npz')
 X = data['pulses']
 y = data['locs']
-#X = np.load('DummyPulses.npz')['arr_0']
-#y = np.load('DummyLocs.npz')['arr_0']
 
-def runModel():
-    model = nn.Sequential(
-        nn.Linear(1024, 10000),
-        nn.ReLU(),
-        nn.Linear(10000, 256),
-        nn.ReLU(),
-        nn.Linear(256, 64),
-        nn.ReLU(),
-        nn.Linear(64, 16),
-        nn.ReLU(),
-        nn.Linear(16, 4),
-        nn.ReLU(),
-        nn.Linear(4, 1)
-    )
+class Model(self):
 
     loss_fn = nn.MSELoss()  # mean square error
     #loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
+
+    def __init__(self, input_size, output_size, max_layers = 3, max_neurons_layers = 500):
+
+        self.input_size = input_size
+        self.output_size = output_size
+        self.max_layers = max_layers
+        self.max_neurons_layers = max_neurons_layers
+
+    def architecture(self, trial):
+    
+        layers = []
+    
+        n_layers = trial.suggest_int("n_layers", 1, self.max_layers)
+    
+        in_features = self.input_size
+
+        for i in range(n_layers):
+   
+            out_features = trial.suggest_int("n_units_l{}".format(i), 4, self.max_neurons_layers)
+
+            layers.append(nn.Linear(in_features, out_features))
+
+            layers.append(nn.LeakyReLU(0.2))
+
+            p = trial.suggest_float("dropout_l{}".format(i), 0.2, 0.8)
+
+            layers.append(nn.Dropout(p))
+
+            in_features = out_features
+    
+        # get the last layer
+    
+        layers.append(nn.Linear(out_features, output_size))
+
+        # return the model
+
+        return nn.Sequential(*layers)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, shuffle=True)
     # scaler = StandardScaler()

@@ -5,35 +5,14 @@ import numpy as np
 import torch
 import tqdm
 from sklearn.model_selection import train_test_split
+from optuna.trial import Trial as trial
 
 data = np.load('TrainingData.npz')
 X = data['pulses']
 output = np.array([data['locs'], data['gammas'], data['amps']])
 y = np.reshape(output, (10000, 3, 3))
 
-def runModel():
-    model = nn.Sequential(
-        nn.Linear(1024, 10000),
-        nn.ReLU(),
-        nn.Linear(10000, 512),
-        nn.ReLU(),
-        nn.Linear(512, 256),
-        nn.ReLU(),
-        nn.Linear(256, 128),
-        nn.ReLU(),
-        nn.Linear(128, 64),
-        nn.ReLU(),
-        nn.Linear(64, 32),
-        nn.ReLU(),
-        nn.Linear(32, 16),
-        nn.ReLU(),
-        nn.Linear(16, 12),
-        nn.ReLU(),
-        nn.Linear(12, 3),
-        nn.ReLU(),
-        nn.Linear(3, 3)
-    )
-
+def train():
     loss_fn = nn.MSELoss()  # mean square error
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
