@@ -7,10 +7,6 @@ import tqdm
 from sklearn.model_selection import train_test_split
 from optuna.trial import Trial as trial
 
-data = np.load('DummyData.npz')
-X = data['pulses']
-y = data['locs']
-
 class Model(self):
 
     loss_fn = nn.MSELoss()  # mean square error
@@ -32,88 +28,67 @@ class Model(self):
         self.splits = splits
 
     def architecture(self, trial):
-    
+        '''
+        This function creates the model architecture for a linear NN using optuna.
+
+            Inputs:
+            -------
+                    trial (optuna Trial object): the trial object for the current run
+
+            Returns:
+            --------
+                    pytorch Sequential object
+        '''
         layers = []
-    
+        
+        #use optuna to predict best number of hidden layers
         n_layers = trial.suggest_int("n_layers", 1, self.max_layers)
     
         in_features = self.input_size
 
         for i in range(n_layers):
    
+            #use optuna to predict best output size
             out_features = trial.suggest_int("n_units_l{}".format(i), 4, self.max_neurons_layers)
 
+            #create layer and add it to layers
             layers.append(nn.Linear(in_features, out_features))
-
             layers.append(nn.LeakyReLU(0.2))
-
+            
+            #use optuna to predict best train/validate split
             p = trial.suggest_float("dropout_l{}".format(i), 0.2, 0.8)
 
+            #add layer to layers
             layers.append(nn.Dropout(p))
-
+            
+            #set new input size to current output size
             in_features = out_features
     
         # get the last layer
-    
         layers.append(nn.Linear(out_features, output_size))
 
-        # return the model
-
+        #create and return model
         return nn.Sequential(*layers)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, shuffle=True)
-    # scaler = StandardScaler()
-    # scaler.fit(X_train_raw)
-    # X_train = scaler.transform(X_train_raw)
-    # X_test = scaler.transform(X_test_raw)
-    X_train = torch.tensor(X_train, dtype=torch.float32)
-    y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
-    X_test = torch.tensor(X_test, dtype=torch.float32)
-    y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
+    def train(self, trial):
+        
+        #create model
+        model = Model.architecture(self, trial).to(self.device)
+        
+        #define optimization parameters
+        learning_rate = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
+        weight_decay = trial.suggest_float("wd", 1e-8, 1e0,  log=True)
 
-    # training parameters
-    n_epochs = 10   # number of epochs to run
-    batch_size = 10  # size of each batch
-    batch_start = torch.arange(0, len(X_train), batch_size)
-    
-    # Hold the best model
-    best_mse = np.inf   # init to infinity
-    best_weights = None
-    history = []
-    
-    # training loop
-    for epoch in range(n_epochs):
-        model.train()
-        with tqdm.tqdm(batch_start, unit="batch", mininterval=0, disable=True) as bar:
-            bar.set_description(f"Epoch {epoch}")
-            for start in bar:
-                # take a batch
-                X_batch = X_train[start:start+batch_size]
-                y_batch = y_train[start:start+batch_size]
-                # forward pass
-                y_pred = model(X_batch)
-                loss = loss_fn(y_pred, y_batch)
-                # backward pass
-                optimizer.zero_grad()
-                loss.backward()
-                # update weights
-                optimizer.step()
-                # print progress
-                bar.set_postfix(mse=float(loss))
-        # evaluate accuracy at end of each epoch
-        model.eval()
-        y_pred = model(X_test)
-        mse = loss_fn(y_pred, y_test.view(1, -1))
-        mse = float(mse)
-        history.append(mse)
-        if mse < best_mse:
-            best_mse = mse
-            best_weights = copy.deepcopy(model.state_dict())
-    
-    # restore model and return best accuracy
-    model.load_state_dict(best_weights)
+        # define the optimizer
+        optimizer = torch.optim.AdamW(
+                                    model.parameters(), 
+                                    lr = learning_rate,
+                                    betas=(0.5, 0.999),
+                                    weight_decay = weight_decay
+                                    )
 
-    print("MSE: %.2f" % best_mse)
-    print("RMSE: %.2f" % np.sqrt(best_mse))
+        #load training data
+        data = np.load('DummyData.npz')
+        samples = data['pulses']
+        features = data['locs']
 
-    return model
