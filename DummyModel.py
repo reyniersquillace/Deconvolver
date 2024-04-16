@@ -7,6 +7,14 @@ import tqdm
 from sklearn.model_selection import train_test_split
 from optuna.trial import Trial as trial
 
+# training parameters
+
+batch_size = 32
+epochs     = 200
+workers    = 2     #number of cpus to load the data 
+g          = [0]  #minimize loss using parameters 0 and 1
+h          = [1]  #minimize loss using errors of parameters 0 and 1
+
 class Model(self):
 
     loss_fn = nn.MSELoss()  # mean square error
@@ -86,9 +94,122 @@ class Model(self):
                                     betas=(0.5, 0.999),
                                     weight_decay = weight_decay
                                     )
+        fout   = 'losses/loss_%d.txt'%(trial.number)
+        fmodel = 'models/model_%d.pt'%(trial.number)
 
         #load training data
         data = np.load('DummyData.npz')
         samples = data['pulses']
         features = data['locs']
+       
+        #split data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(samples, features, train_size=0.7, shuffle=True)
+        
+        #cast data as torch tensor with correct shape and data type
+        X_train = torch.tensor(X_train, dtype=torch.float32)
+        y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
+        X_test = torch.tensor(X_test, dtype=torch.float32)
+        y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
+        
+        for epoch in range(self.epochs):
+            
+            #????
+            train_loss1, train_loss = torch.zeros(len(g)).to(device), 0.0
+            train_loss2, points     = torch.zeros(len(g)).to(device), 0
 
+            model.train()
+
+            for X_train, y_train in zip(X_train, y_train):
+
+                batch_size = len(X_train)
+
+                X = X_train.to(device)
+                y = y_train.to(device)
+                p = model(X)
+
+                #get posterior mean and error
+                y_NN = p[:,g].squeeze()
+                e_NN = p[:,h].squeeze()
+
+                #get loss of mean and error
+                loss1 = torch.mean((y_NN - y)**2, axis=0)
+                loss2 = torch.mean(((y_NN - y)**2 - e_NN**2)**2, axis=0)
+
+                #get total loss
+                loss  = torch.mean(torch.log(loss1) + torch.log(loss2))
+
+                #get training run losses overall
+                train_loss1 += loss1*batch_size
+                train_loss2 += loss2*batch_size
+
+                points += batch_size
+
+                #fancy machine learning stuff
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            train_loss = torch.log(train_loss1/points) + torch.log(train_loss2/points)
+            train_loss = torch.mean(train_loss).item()
+
+            #now we move on to validation
+            valid_loss1, valid_loss = torch.zeros(len(g)).to(device), 0.0
+            valid_loss2, points     = torch.zeros(len(g)).to(device), 0
+
+            model.eval()
+
+            for X_train, y_train in zip(X_train, y_train):
+
+                with torch.no_grad():
+
+                    batch_size = len(x)
+
+                    x = x.to(device)
+                    y = y.to(device)
+                    p = model(x)
+                    
+                    #get posterior mean and error
+                    y_NN = p[:,g].squeeze()
+                    e_NN = p[:,h].squeeze()
+
+                    #get loss of mean and error
+                    loss1 = torch.mean((y_NN - y)**2, axis=0)
+                    loss2 = torch.mean(((y_NN - y)**2 - e_NN**2)**2, axis=0)
+
+                    #get total loss
+                    loss  = torch.mean(torch.log(loss1) + torch.log(loss2))
+
+                    #get training run losses overall
+                    valid_loss1 += loss1*batch_size
+                    valid_loss2 += loss2*batch_size
+
+                    points     += batch_size
+
+                valid_loss = torch.log(valid_loss1/points) + torch.log(valid_loss2/points)
+                valid_loss = torch.mean(valid_loss).item()
+
+
+
+                print('%03d %.3e %.3e '%(epoch, train_loss, valid_loss), end='')
+
+
+
+                # save best model if found
+                if valid_loss<min_valid:  
+
+                    min_valid = valid_loss
+
+                    torch.save(model.state_dict(), fmodel)
+
+                    print('(C) ', end='')
+
+                print('')
+
+
+
+                f = open(fout, 'a')
+                f.write('%d %.5e %.5e\n'%(epoch, train_loss, valid_loss))
+                f.close()
+
+
+            return min_valid
