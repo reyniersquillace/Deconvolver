@@ -17,12 +17,19 @@ class Model(self):
     #loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-    def __init__(self, input_size, output_size, max_layers = 3, max_neurons_layers = 500):
+    def __init__(self, input_size, output_size, max_layers = 3, max_neurons_layers = 500,
+            device, epochs, seed, batch_size, workers, splits):
 
         self.input_size = input_size
         self.output_size = output_size
         self.max_layers = max_layers
         self.max_neurons_layers = max_neurons_layers
+        self.device = device
+        self.epochs = epochs
+        self.seed = seed
+        self.batch_size = batch_size
+        self.workers = workers
+        self.splits = splits
 
     def architecture(self, trial):
     
