@@ -18,8 +18,8 @@ h          = [1]  #minimize loss using errors of parameters 0 and 1
 
 class Model(self):
 
-    def __init__(self, output_size, max_layers = 3, max_neurons_layers = 500,
-            device, epochs, seed, batch_size, workers, splits):
+    def __init__(self, output_size, max_layers, max_neurons_layers, 
+                 epochs, seed, batch_size, workers, splits):
 
         self.output_size = output_size
         self.max_layers = max_layers
