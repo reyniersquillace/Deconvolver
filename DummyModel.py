@@ -9,6 +9,7 @@ from optuna.trial import Trial as trial
 
 # training parameters
 
+output_size = 2 #posterior mean and error
 batch_size = 32
 epochs     = 200
 workers    = 2     #number of cpus to load the data 
@@ -17,23 +18,27 @@ h          = [1]  #minimize loss using errors of parameters 0 and 1
 
 class Model(self):
 
-    loss_fn = nn.MSELoss()  # mean square error
-    #loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
-    def __init__(self, input_size, output_size, max_layers = 3, max_neurons_layers = 500,
+    def __init__(self, output_size, max_layers = 3, max_neurons_layers = 500,
             device, epochs, seed, batch_size, workers, splits):
 
-        self.input_size = input_size
         self.output_size = output_size
         self.max_layers = max_layers
         self.max_neurons_layers = max_neurons_layers
-        self.device = device
+        self.device = Model.device()
         self.epochs = epochs
         self.seed = seed
         self.batch_size = batch_size
         self.workers = workers
         self.splits = splits
+    
+    def device(self):
+
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+        else:
+            device = torch.device('cpu')
+
+        return device
 
     def architecture(self, trial):
         '''
@@ -101,7 +106,8 @@ class Model(self):
         data = np.load('DummyData.npz')
         samples = data['pulses']
         features = data['locs']
-       
+        self.input_size = len(samples)
+
         #split data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(samples, features, train_size=0.7, shuffle=True)
         
