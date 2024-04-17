@@ -40,6 +40,12 @@ class Model(self):
 
         return device
 
+    def make_file(self):
+
+        for fout in ['models', 'losses']:
+            if not(os.path.exists(fout)):
+                os.system('mkdir %s'%fout)
+
     def architecture(self, trial):
         '''
         This function creates the model architecture for a linear NN using optuna.
@@ -99,8 +105,8 @@ class Model(self):
                                     betas=(0.5, 0.999),
                                     weight_decay = weight_decay
                                     )
-        fout   = 'losses/loss_%d.txt'%(trial.number)
-        fmodel = 'models/model_%d.pt'%(trial.number)
+        trial_file   = 'losses/loss_%d.txt'%(trial.number)
+        model_file = 'models/model_%d.pt'%(trial.number)
 
         #load training data
         data = np.load('DummyData.npz')
@@ -170,9 +176,9 @@ class Model(self):
 
                     batch_size = len(x)
 
-                    x = x.to(device)
-                    y = y.to(device)
-                    p = model(x)
+                    X = X_train.to(device)
+                    y = y_train.to(device)
+                    p = model(X)
                     
                     #get posterior mean and error
                     y_NN = p[:,g].squeeze()
@@ -205,7 +211,7 @@ class Model(self):
 
                     min_valid = valid_loss
 
-                    torch.save(model.state_dict(), fmodel)
+                    torch.save(model.state_dict(), model_file)
 
                     print('(C) ', end='')
 
@@ -213,7 +219,7 @@ class Model(self):
 
 
 
-                f = open(fout, 'a')
+                f = open(trial_file, 'a')
                 f.write('%d %.5e %.5e\n'%(epoch, train_loss, valid_loss))
                 f.close()
 
