@@ -7,26 +7,27 @@ import tqdm
 from sklearn.model_selection import train_test_split
 from optuna.trial import Trial as trial
 
-# training parameters
-
-output_size = 2 #posterior mean and error
-batch_size = 32
-epochs     = 200
-workers    = 2     #number of cpus to load the data 
-g          = [0]  #minimize loss using parameters 0 and 1
-h          = [1]  #minimize loss using errors of parameters 0 and 1
-
 class Model(self):
 
-    def __init__(self, output_size, max_layers, max_neurons_layers, 
-                 epochs, seed, batch_size, workers, splits):
+    def __init__(
+                self, 
+                samples, 
+                features, 
+                max_layers, 
+                max_neurons_layers, 
+                epochs, 
+                batch_size, 
+                workers,
+                ):
 
-        self.output_size = output_size
+        self.samples = samples
+        self.features = features
+        self.input_size = len(samples)
+        self.output_size = len(features)*2 #one error for each input feature
         self.max_layers = max_layers
         self.max_neurons_layers = max_neurons_layers
         self.device = Model.device()
         self.epochs = epochs
-        self.seed = seed
         self.batch_size = batch_size
         self.workers = workers
         self.splits = splits
@@ -108,14 +109,8 @@ class Model(self):
         trial_file   = 'losses/loss_%d.txt'%(trial.number)
         model_file = 'models/model_%d.pt'%(trial.number)
 
-        #load training data
-        data = np.load('DummyData.npz')
-        samples = data['pulses']
-        features = data['locs']
-        self.input_size = len(samples)
-
         #split data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(samples, features, train_size=0.7, shuffle=True)
+        X_train, X_test, y_train, y_test = train_test_split(self.samples, self.features, train_size=0.7, shuffle=True)
         
         #cast data as torch tensor with correct shape and data type
         X_train = torch.tensor(X_train, dtype=torch.float32)
