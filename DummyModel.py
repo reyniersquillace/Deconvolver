@@ -6,8 +6,9 @@ import torch
 import tqdm
 from sklearn.model_selection import train_test_split
 from optuna.trial import Trial as trial
+import logging as log
 
-class Model(self):
+class Model(object):
 
     def __init__(
                 self, 
@@ -18,11 +19,13 @@ class Model(self):
                 epochs, 
                 batch_size, 
                 workers,
+                g,
+                h
                 ):
 
         self.samples = samples
         self.features = features
-        self.input_size = len(samples)
+        self.input_size = np.shape(samples)[1]
         self.output_size = len(features)*2 #one error for each input feature
         self.max_layers = max_layers
         self.max_neurons_layers = max_neurons_layers
@@ -30,14 +33,17 @@ class Model(self):
         self.epochs = epochs
         self.batch_size = batch_size
         self.workers = workers
-        self.splits = splits
-    
-    def device(self):
+        self.g = g
+        self.h = h
+
+    def device():
 
         if torch.cuda.is_available():
             device = torch.device('cuda')
         else:
             device = torch.device('cpu')
+        
+        log.info(f"Using {device} as device.")
 
         return device
 
@@ -77,7 +83,8 @@ class Model(self):
             
             #use optuna to predict best train/validate split
             p = trial.suggest_float("dropout_l{}".format(i), 0.2, 0.8)
-
+            
+            log.info(f"Created a hidden layer of size ({in_features}, {out_features}).")
             #add layer to layers
             layers.append(nn.Dropout(p))
             
@@ -85,12 +92,13 @@ class Model(self):
             in_features = out_features
     
         # get the last layer
-        layers.append(nn.Linear(out_features, output_size))
+        layers.append(nn.Linear(out_features, self.output_size))
 
+        log.info(f"Created a model with {n_layers} hidden layers.")
         #create and return model
         return nn.Sequential(*layers)
 
-    def train(self, trial):
+    def __call__(self, trial):
         
         #create model
         model = Model.architecture(self, trial).to(self.device)
@@ -121,8 +129,8 @@ class Model(self):
         for epoch in range(self.epochs):
             
             #????
-            train_loss1, train_loss = torch.zeros(len(g)).to(device), 0.0
-            train_loss2, points     = torch.zeros(len(g)).to(device), 0
+            train_loss1, train_loss = torch.zeros(len(self.g)).to(self.device), 0.0
+            train_loss2, points     = torch.zeros(len(self.g)).to(self.device), 0
 
             model.train()
 
@@ -130,14 +138,17 @@ class Model(self):
 
                 batch_size = len(X_train)
 
-                X = X_train.to(device)
-                y = y_train.to(device)
+                X = X_train.to(self.device)
+                y = y_train.to(self.device)
                 p = model(X)
 
                 #get posterior mean and error
-                y_NN = p[:,g].squeeze()
-                e_NN = p[:,h].squeeze()
+                #y_NN = p[:,self.g].squeeze()
+                #e_NN = p[:,self.h].squeeze()
 
+                y_NN = p[:].squeeze()
+                e_NN = p[:].squeeze()
+                
                 #get loss of mean and error
                 loss1 = torch.mean((y_NN - y)**2, axis=0)
                 loss2 = torch.mean(((y_NN - y)**2 - e_NN**2)**2, axis=0)
@@ -160,8 +171,8 @@ class Model(self):
             train_loss = torch.mean(train_loss).item()
 
             #now we move on to validation
-            valid_loss1, valid_loss = torch.zeros(len(g)).to(device), 0.0
-            valid_loss2, points     = torch.zeros(len(g)).to(device), 0
+            valid_loss1, valid_loss = torch.zeros(len(self.g)).to(self.device), 0.0
+            valid_loss2, points     = torch.zeros(len(self.g)).to(self.device), 0
 
             model.eval()
 
@@ -171,14 +182,17 @@ class Model(self):
 
                     batch_size = len(x)
 
-                    X = X_train.to(device)
-                    y = y_train.to(device)
+                    X = X_train.to(self.device)
+                    y = y_train.to(self.device)
                     p = model(X)
                     
                     #get posterior mean and error
-                    y_NN = p[:,g].squeeze()
-                    e_NN = p[:,h].squeeze()
+                    #y_NN = p[:,self.g].squeeze()
+                    #e_NN = p[:,self.h].squeeze()
 
+                    y_NN = p[:].squeeze()
+                    e_NN = p[:].squeeze()
+                    
                     #get loss of mean and error
                     loss1 = torch.mean((y_NN - y)**2, axis=0)
                     loss2 = torch.mean(((y_NN - y)**2 - e_NN**2)**2, axis=0)
