@@ -69,7 +69,7 @@ def generate_dummy(n_samples, n_bins):
     return pulses, locs
 
 def generate_class(n_samples, n_bins):
-    phi = range(n_bins)
+    phi = np.arange(n_bins, dtype = int)
     pulses = np.zeros((n_samples, n_bins))
     locs = np.zeros((n_samples, n_bins))
     
