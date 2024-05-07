@@ -48,7 +48,7 @@ def generate(n_samples, n_bins, noise = True):
     return pulses, locs, gammas, amps
 
 def generate_dummy(n_samples, n_bins):
-    phi = np.linspace(0, 1, n_bins)
+    phi = np.linspace(0, 1, 1024)
     pulses = np.zeros((n_samples, n_bins))
     locs = np.zeros(n_samples)
 
@@ -67,3 +67,28 @@ def generate_dummy(n_samples, n_bins):
         pulses[i] = pulse
 
     return pulses, locs
+
+def generate_class(n_samples, n_bins):
+    phi = range(n_bins)
+    pulses = np.zeros((n_samples, n_bins))
+    locs = np.zeros((n_samples, n_bins))
+    
+    for i in range(n_samples):
+
+        pulse = np.zeros(n_bins)
+
+        gamma_sub = rand.choice(np.linspace(0.001*1024, 0.05*1024, 1000))
+        loc_sub = rand.randint(0, 1024)
+        subpulse = lorentzian(phi, gamma_sub,loc_sub)
+        amp = rand.choice(np.linspace(0.1, 0.9))
+        subpulse *= amp/max(subpulse)
+        pulse += subpulse
+
+        locs[i, loc_sub] = 1
+        pulses[i] = pulse
+
+    return pulses, locs
+
+
+pulses, locs = generate_class(10000, 1024)
+np.savez('ClassData.npz', *[pulses, locs], **{'pulses' : pulses, 'locs' : locs})
