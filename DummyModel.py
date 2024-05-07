@@ -31,7 +31,6 @@ class Model(object):
         self.features = features
         self.input_size = np.shape(samples)[1]
         self.output_size = 2 #one error for each input feature
-        
         self.max_layers = max_layers
         self.max_neurons_layers = max_neurons_layers
         self.device = Model.device()
@@ -96,7 +95,6 @@ class Model(object):
     
         # get the last layer
         layers.append(nn.Linear(out_features, self.output_size))
-        log.info(f"Final layer has size {out_features, self.output_size}")
         #create and return model
         return nn.Sequential(*layers)
     
