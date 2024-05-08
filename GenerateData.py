@@ -86,4 +86,4 @@ def generate_class(n_samples, n_bins):
 
 
 pulses, locs = generate_class(20000, 1024)
-np.savez('ClassData.npz', *[pulses, locs], **{'pulses' : pulses, 'locs' : locs})
+np.savez('Data.npz', *[pulses, locs, gammas], **{'pulses' : pulses, 'locs' : locs, 'gammas' : gammas})
