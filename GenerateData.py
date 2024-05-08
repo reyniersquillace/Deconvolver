@@ -16,7 +16,6 @@ def generate(n_samples, n_bins, noise = False):
         gamma = rand.choice(np.linspace(1, 50, n_bins))
         pulse = lorentzian(phi, gamma)
         pulse /= max(pulse)
-        pulse = np.zeros(1024)
 
         subpulses = rand.randint(0, max_subpulses + 1)
         subpulses = max_subpulses 
@@ -29,7 +28,8 @@ def generate(n_samples, n_bins, noise = False):
             subpulse *= amp/max(subpulse)
             pulse += subpulse
 
-            locs[i, j + 1] = loc_sub
+            locs[i, loc_sub] = 1
+            pulses[i] = pulse
             gammas[i, j + 1] = gamma_sub
 
         if noise:
@@ -37,7 +37,7 @@ def generate(n_samples, n_bins, noise = False):
             pulse += rand.normal(0, rms, n_bins)
 
         pulses[i] = pulse
-        locs[i, 0] = 512
+        locs[i, 512] = 1
         gammas[i, 0] = gamma
 
     return pulses, locs, gammas
