@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import tqdm
 from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier as MLP
 from optuna.trial import Trial as trial
 import logging as log
 
@@ -24,6 +25,7 @@ class Model(object):
                 g,
                 h,
                 min_valid,
+                architecture
                 ):
 
         self.samples = samples
@@ -57,19 +59,19 @@ class Model(object):
         
         if n_layers == 1:
 
-            n_neurons = 2048
+            n_neurons = (2048)
 
         elif n_layers == 2:
             
-            n_neurons = 1024
+            n_neurons = (1024, 1024)
 
-        mlp = nn.MLPClassifier(n_neurons)
+        mlp = MLP(n_neurons)
 
         return mlp
 
 
-   def __call__(self, trial):
-
+    def __call__(self, trial):
+        model = Model.MLP_architecture(self, trial)
         #define optimization parameters
         learning_rate = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
         weight_decay = trial.suggest_float("wd", 1e-8, 1e0,  log=True)

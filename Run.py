@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import optuna
 import logging as log
-from DummyModel import Model
+from ClassModel import Model
 
 log.basicConfig(level=log.NOTSET)
 
@@ -32,7 +32,8 @@ architecture = 'rnn'
 def main():
 
     #load training data
-    data = np.load('DummyData.npz')
+#    data = np.load('DummyData.npz')
+    data = np.load('ClassData.npz')
     samples = data['pulses']
     features = data['locs']
     
