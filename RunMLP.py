@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier as MLP
 import numpy as np
 import argparse
+import Princeton
 
 class MLPModel:
     
@@ -51,7 +52,13 @@ class MLPModel:
         '''
 
         data = np.load(training_data)
-        return data['pulses'], data['locs'], data['gammas']
+        pulses = np.zeros(np.shape(data['pulses']))
+        locs = np.zeros(np.shape(data['locs']))
+
+        for i in range(len(pulses)):
+            pulses[i, :], locs[i, :] = Princeton.pseudo_princeton(pulses[i, :], locs[i, :])
+
+        return pulses, locs, data['gammas']
 
     def build(self):
         '''
@@ -113,9 +120,10 @@ class MLPModel:
         '''
 
         with open(self.outfile, 'wb') as f:
-            pickle.dump(clf, f)
+            pickle.dump(self.clf, f)
 
 model = MLPModel()
 stats = model.stats()
 for stat in stats:
-    print(stats[stat])
+    print(f"{stat} = {stats[stat]}%")
+model.save()
