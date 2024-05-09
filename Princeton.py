@@ -15,9 +15,10 @@ def fft_rotate(arr, bins):
     phasor = np.exp(complex(0.0, 2*np.pi) * freqs * bins / float(arr.size))
     return np.fft.irfft(phasor * np.fft.rfft(arr), arr.size)
 
-def Princeton(pulse, center = 0.5):
+def Princeton(pulse, locs, center = 0.5):
     n = len(pulse)
     ftpulse = np.fft.rfft(pulse)
     phi0 = np.angle(ftpulse[1])
     newpulse = fft_rotate(pulse, -(phi0)/(2*np.pi)*n+center*n)
-    return newpulse
+    newlocs = fft_rotate(locs, -(phi0)/(2*np.pi)*n + center*n)
+    return newpulse, newlocs
