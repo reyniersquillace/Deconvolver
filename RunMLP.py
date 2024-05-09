@@ -56,7 +56,7 @@ class MLPModel:
         locs = np.zeros(np.shape(data['locs']))
 
         for i in range(len(pulses)):
-            pulses[i, :], locs[i, :] = Princeton.pseudo_princeton(pulses[i, :], locs[i, :])
+            pulses[i, :], locs[i, :] = Princeton.pseudo_princeton(data['pulses'][i, :], data['locs'][i, :])
 
         return pulses, locs, data['gammas']
 
