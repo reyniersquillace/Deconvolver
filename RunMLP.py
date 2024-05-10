@@ -1,3 +1,4 @@
+import time
 import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier as MLP
@@ -14,7 +15,7 @@ class MLPModel:
         self.pulses = pulses
         self.locs = locs
         self.gammas = gammas
-        self.outfile = outfile
+        self.outfile = './pickle_jar/'+outfile
         self.clf = MLPModel.build(self)
 
     def args():
@@ -108,6 +109,9 @@ class MLPModel:
                 correct += 1
     
         stats_dict = {}
+        stats_dict['accuracy'] = self.clf.score(self.X_test, self.y_test)
+        stats_dict['best loss'] = self.clf.best_loss_
+        stats_dict['loss curve'] = self.clf.loss_curve_
         stats_dict['underfit'] = underfit/(underfit + overfit + correct)
         stats_dict['overfit'] = overfit/(underfit + overfit + correct)
         stats_dict['correct'] = correct/(underfit + overfit + correct)
@@ -121,9 +125,17 @@ class MLPModel:
 
         with open(self.outfile, 'wb') as f:
             pickle.dump(self.clf, f)
+start = time.time()
+print(f'Training started at {time.ctime(start)}')
 
 model = MLPModel()
+
+finish = time.time()
+print(f'Training completed at {time.ctime(finish)}')
+print('Evaluating model.')
 stats = model.stats()
 for stat in stats:
-    print(f"{stat} = {stats[stat]}%")
+    print(f"{stat} = {stats[stat]}")
+print('Saving model.')
 model.save()
+print('Model saved. Thank you for contributing to the pickle jar.')
