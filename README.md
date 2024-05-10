@@ -13,3 +13,5 @@ If you want to generate your own profiles to see how well the model lines up wit
 `python3 Call.py [./path/to/model] test [n_test]`
 
 where `n_test` is the number of pulses you want generated. This will give you information about the model accuracy. 
+
+Unfortunately, working on this project against a deadline means I haven't had time to train all the models I wanted to. But fear not, my code allows you to train your own using my architecture and modules! To see how that works, head on over to the repo wiki.
