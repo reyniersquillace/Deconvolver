@@ -1,11 +1,11 @@
+import argparse
 import numpy as np
-import sys, os, time
+import time
 import torch
 import torch.nn as nn
 import optuna
 import logging as log
-from ClassModel import Model
-
+from Model import Model
 log.basicConfig(level=log.NOTSET)
 
 #architecture parameters
@@ -44,12 +44,12 @@ def args():
     parser.add_argument('training_data')
     parser.add_argument('architecture')
     args = parser.parse_args()
-    return args.training_data, args.outfile, args.architecture
+    return args.training_data, args.architecture
 
 def main():
 
     #load training data
-    training_data, outfile, architecture = args()
+    training_data, architecture = args()
     data = np.load(training_data)
     samples = data['pulses']
     features = data['locs']
@@ -66,7 +66,6 @@ def main():
                     h,
                     min_valid,
                     architecture,
-                    outfile,
                     )
     log.info(f"Creating sampler at t = {time.time() - start} s")
     sampler = optuna.samplers.TPESampler(n_startup_trials=n_startup_trials)
@@ -77,7 +76,7 @@ def main():
     study.optimize(objective, n_trials, n_jobs=n_jobs)
     log.info(f"Training completed at t = {time.time() - start} s")
 
-tart = time.time()
+start = time.time()
 log.info(f'Training and optimization started at {time.ctime(start)}')
 
 main()

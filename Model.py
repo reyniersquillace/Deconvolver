@@ -66,29 +66,24 @@ class Model(object):
         --------
                 pytorch Sequential object
         '''
+        
+        layers = []
+        in_features = 1024
 
-        model = nn.Sequential(
-                nn.Linear(1024, 512),
-                nn.ReLu(),
-                nn.Linear(512, 256),
-                nn.ReLu(),
-                nn.Linear(256, 128),
-                nn.ReLu(),
-                nn.Linear(128, 64),
-                nn.ReLu(),
-                nn.Linear(64, 32),
-                nn.ReLu(),
-                nn.Linear(32, 16),
-                nn.ReLu(),
-                nn.Linear(16, 8),
-                nn.ReLu(),
-                nn.Linear(8, 4),
-                nn.ReLu(),
-                nn.Linear(4, 2),
-                nn.ReLu(),
-                )
+        for i in range(9):
+            
+            out_features = int(in_features/2)
+            layers.append(nn.Linear(in_features, out_features))
+            layers.append(nn.LeakyReLU(0.2))
 
-        return model
+            #use optuna to predict best train/validate split
+            p = trial.suggest_float("dropout_l{}".format(i), 0.2, 0.8)
+
+            #add layer to layers
+            layers.append(nn.Dropout(p))
+            in_features = out_features
+
+        return nn.Sequential(*layers)
         
 
 
@@ -173,11 +168,11 @@ class Model(object):
                                     weight_decay = weight_decay
                                     )
        
-        loss_file   = './{architecture}_losses/loss_%d.txt'%(trial.number)
-        model_file = './{architecture}_models/model_%d.pt'%(trial.number)
+        loss_file   = f'./{self.architecture}_losses/loss_%d.txt'%(trial.number)
+        model_file = f'./{self.architecture}_models/model_%d.pt'%(trial.number)
 
         #split data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(self.samples, self.features, train_size=0.7, shuffle=True)
+        X_train, X_test, y_train, y_test = train_test_split(self.samples, self.features, train_size=0.8, shuffle=True)
         
         #cast data as torch tensor with correct shape and data type
         X_train = torch.tensor(X_train, dtype=torch.float32)
@@ -198,13 +193,12 @@ class Model(object):
                 p = model(X)
                 
                 #get posterior mean and error
-                y_NN = p[:].squeeze()
-                e_NN = p[:].squeeze()
+                y_NN = p[0].reshape([1, 1])
+                e_NN = p[1].reshape([1, 1])
                 
                 #get loss of mean and error
-                loss_func = nn.CrossEntropyLoss()
-                loss1 = loss_func(y_NN, y)
-                loss1 = loss_func(e_NN, loss1)
+                loss1 = torch.mean((y_NN - y)**2, axis = 0)
+                loss2 = torch.mean((loss1 - e_NN)**2, axis = 0)
 
                 #get total loss
                 loss  = torch.mean(torch.log(loss1) + torch.log(loss2))
@@ -238,13 +232,13 @@ class Model(object):
                     p = model(X)
                     
                     #get posterior mean and error
-                    y_NN = p[:].squeeze()
-                    e_NN = p[:].squeeze()
+                    #get posterior mean and error
+                    y_NN = p[0].reshape([1, 1])
+                    e_NN = p[1].reshape([1, 1])
                     
                     #get loss of mean and error
-                    loss_func = nn.CrossEntropyLoss()
-                    loss1 = loss_func(y_NN, y)
-                    loss1 = loss_func(e_NN, loss1)
+                    loss1 = torch.mean((y_NN - y)**2, axis = 0)
+                    loss2 = torch.mean((loss1 - e_NN)**2, axis = 0)
 
                     #get total loss
                     loss  = torch.mean(torch.log(loss1) + torch.log(loss2))
@@ -255,10 +249,6 @@ class Model(object):
                     points += bs
                 valid_loss = torch.log(valid_loss1/points) + torch.log(valid_loss2/points)
                 valid_loss = torch.mean(valid_loss).item()
-
-
-
-                print('%03d %.3e %.3e '%(epoch, train_loss, valid_loss), end='')
 
 
 
