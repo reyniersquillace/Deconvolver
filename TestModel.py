@@ -34,7 +34,7 @@ def test(model, n_test):
     m = torch.load(model)
     m.eval()
 
-    if 'pt' in model:
+    if model[-2:] == 'pt':
         test_pulses, test_locs = GenerateData.generate_dummy(n_test, 1024)
 
         with torch.no_grad():
@@ -47,7 +47,7 @@ def test(model, n_test):
                 print(f"Actual y: {test_locs[i]}")
                 print("\n")
     
-    elif 'pkl' in model:
+    elif model[-3:] == 'pkl':
         test_pulses, test_locs, gammas = GenerateData.generate(n_test, 1024)
         X_train, X_test, y_train, y_test = train_test_split(pulses, locs, train_size = 0.)
         for i in range(n_test):
@@ -56,6 +56,8 @@ def test(model, n_test):
             print(f"Predicted y: {y_pred}")
             print(f"Actual y: {y_act}")
             print("\n")
+    else:
+        raise('What on earth did you just ask me to load?')
 
 model, n_test = args()
 test(model, n_test)
