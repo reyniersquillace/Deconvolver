@@ -27,13 +27,30 @@ n_trials         = 20 #set to None for infinite
 n_jobs           = 1
 n_startup_trials = 20 #random sample the space before using the sampler
 
-architecture = 'rnn'
+def args():
+    '''
+    This function parses the command line input.
+
+    Returns:
+    --------
+        training_data (str.npz): the unsplit training set
+        architecture (str)     : the model architecture to choose
+    '''
+    parser = argparse.ArgumentParser(
+            prog = "PeakLNN",
+            description = "Architecture options: LNN_preset, LNN_dynamic, RNN.",
+            epilog = "Shane u better like my fancy user interface",
+            )
+    parser.add_argument('training_data')
+    parser.add_argument('architecture')
+    args = parser.parse_args()
+    return args.training_data, args.outfile, args.architecture
 
 def main():
 
     #load training data
-#    data = np.load('DummyData.npz')
-    data = np.load('ClassData.npz')
+    training_data, outfile, architecture = args()
+    data = np.load(training_data)
     samples = data['pulses']
     features = data['locs']
     
@@ -49,6 +66,7 @@ def main():
                     h,
                     min_valid,
                     architecture,
+                    outfile,
                     )
     log.info(f"Creating sampler at t = {time.time() - start} s")
     sampler = optuna.samplers.TPESampler(n_startup_trials=n_startup_trials)
@@ -58,6 +76,13 @@ def main():
     log.info(f"Optimizing study at t = {time.time() - start} s")
     study.optimize(objective, n_trials, n_jobs=n_jobs)
     log.info(f"Training completed at t = {time.time() - start} s")
-start = time.time()
+
+tart = time.time()
+log.info(f'Training and optimization started at {time.ctime(start)}')
+
 main()
+
+finish = time.time()
+print(f'Training and optimization completed at {time.ctime(finish)}')
+
         
