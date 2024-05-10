@@ -26,15 +26,15 @@ def args():
     parser.add_argument('setting') 
     parser.add_argument('third_arg')
     args = parser.parse_args()
-        if args.setting == 'use':
-            pulse_data = args.third_arg
-            pulse = np.load(pulse_data)
-            return args.model, pulse, args.setting
-        elif args.setting == 'test':
-            n_test = int(args.third_arg)
-            return args.model, n_test, args.setting
-        else:
-            raise Exception('That\'s not a valid call type.')
+    if args.setting == 'use':
+        pulse_data = args.third_arg
+        pulse = np.load(pulse_data)
+        return args.model, pulse, args.setting
+    elif args.setting == 'test':
+        n_test = int(args.third_arg)
+        return args.model, n_test, args.setting
+    else:
+        raise Exception('That\'s not a valid call type.')
 
 def test(model, n_test):
     '''This function tests the model on [n_test] fake pulses.
