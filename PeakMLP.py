@@ -5,6 +5,7 @@ from sklearn.neural_network import MLPClassifier as MLP
 import numpy as np
 import argparse
 import Princeton
+import matplotlib.pyplot as plt
 
 class MLPModel:
     
@@ -111,10 +112,16 @@ class MLPModel:
         stats_dict = {}
         stats_dict['accuracy'] = self.clf.score(self.X_test, self.y_test)
         stats_dict['best loss'] = self.clf.best_loss_
-        stats_dict['loss curve'] = self.clf.loss_curve_
         stats_dict['underfit'] = underfit/(underfit + overfit + correct)
         stats_dict['overfit'] = overfit/(underfit + overfit + correct)
         stats_dict['correct'] = correct/(underfit + overfit + correct)
+        
+        loss_curve = self.clf.loss_curve_
+        plt.plot(loss_curve)
+        plt.xlabel('Iteration')
+        plt.ylabel('Loss')
+        plt.title('Training Loss')
+        plt.savefig(f'{self.outfile}.png')
 
         return stats_dict
 
@@ -123,8 +130,9 @@ class MLPModel:
         This function saves the model as a pickle file.
         '''
 
-        with open(self.outfile, 'wb') as f:
+        with open(f'{self.outfile}.pkl', 'wb') as f:
             pickle.dump(self.clf, f)
+
 start = time.time()
 print(f'Training started at {time.ctime(start)}')
 
