@@ -1,11 +1,11 @@
+import argparse
 import numpy as np
-import sys, os, time
+import time
 import torch
 import torch.nn as nn
 import optuna
 import logging as log
-from ClassModel import Model
-
+from Model import Model
 log.basicConfig(level=log.NOTSET)
 
 #architecture parameters
@@ -27,13 +27,30 @@ n_trials         = 20 #set to None for infinite
 n_jobs           = 1
 n_startup_trials = 20 #random sample the space before using the sampler
 
-architecture = 'rnn'
+def args():
+    '''
+    This function parses the command line input.
+
+    Returns:
+    --------
+        training_data (str.npz): the unsplit training set
+        architecture (str)     : the model architecture to choose
+    '''
+    parser = argparse.ArgumentParser(
+            prog = "PeakLNN",
+            description = "Architecture options: LNN_preset, LNN_dynamic, RNN.",
+            epilog = "Shane u better like my fancy user interface",
+            )
+    parser.add_argument('training_data')
+    parser.add_argument('architecture')
+    args = parser.parse_args()
+    return args.training_data, args.architecture
 
 def main():
 
     #load training data
-#    data = np.load('DummyData.npz')
-    data = np.load('ClassData.npz')
+    training_data, architecture = args()
+    data = np.load(training_data)
     samples = data['pulses']
     features = data['locs']
     
@@ -58,6 +75,13 @@ def main():
     log.info(f"Optimizing study at t = {time.time() - start} s")
     study.optimize(objective, n_trials, n_jobs=n_jobs)
     log.info(f"Training completed at t = {time.time() - start} s")
+
 start = time.time()
+log.info(f'Training and optimization started at {time.ctime(start)}')
+
 main()
+
+finish = time.time()
+print(f'Training and optimization completed at {time.ctime(finish)}')
+
         
