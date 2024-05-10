@@ -1,7 +1,9 @@
+import pickle
 import torch
 import numpy as np
 import GenerateData
 import argparse
+from sklearn.model_selection import train_test_split
 
 def args():
     '''
@@ -21,7 +23,7 @@ def args():
     parser.add_argument('n_test')
     args = parser.parse_args()
    
-    return args.model, args.n_test
+    return args.model, int(args.n_test)
 
 def test(model, n_test):
     '''This function tests the model on [n_test] fake pulses.
@@ -31,10 +33,10 @@ def test(model, n_test):
         model (str): the name of the .pt file containing the PyTorch model
         n_test (int): the number of fake pulses on which to test the model
     '''
-    m = torch.load(model)
-    m.eval()
 
     if model[-2:] == 'pt':
+        m = torch.load(model)
+        m.eval()
         test_pulses, test_locs = GenerateData.generate_dummy(n_test, 1024)
 
         with torch.no_grad():
@@ -48,16 +50,20 @@ def test(model, n_test):
                 print("\n")
     
     elif model[-3:] == 'pkl':
-        test_pulses, test_locs, gammas = GenerateData.generate(n_test, 1024)
-        X_train, X_test, y_train, y_test = train_test_split(pulses, locs, train_size = 0.)
+        pulses, locs, gammas = GenerateData.generate(n_test, 1024)
+        #X_train, X_test, y_train, y_test = train_test_split(pulses, locs, train_size = )
+       
+        with open(model, 'rb') as f:
+            clf = pickle.load(f)
+
         for i in range(n_test):
-            y_pred = np.where(clf.predict(X_test[i:i+1, :]) == 1)[1]
-            y_act = np.where(y_test[i:i+1, :] == 1)[1]
+            y_pred = np.where(clf.predict(pulses[i:i+1, :]) == 1)[1]
+            y_act = np.where(locs[i:i+1, :] == 1)[1]
             print(f"Predicted y: {y_pred}")
             print(f"Actual y: {y_act}")
             print("\n")
     else:
-        raise('What on earth did you just ask me to load?')
+        raise Exception('What on earth did you just ask me to load?')
 
 model, n_test = args()
 test(model, n_test)
