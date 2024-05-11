@@ -1,3 +1,5 @@
+#this code was written using Jonah Rose's code as a guide
+
 import argparse
 import numpy as np
 import time

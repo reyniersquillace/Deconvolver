@@ -1,3 +1,5 @@
+#this code was written using Jonah Rose's code as a guide
+
 import torch.nn as nn
 import torch.optim as optim
 import copy
