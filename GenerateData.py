@@ -1,11 +1,39 @@
 import numpy as np
 import numpy.random as rand
 
-def lorentzian(phi, gamma, x0 = 512):
-    return (gamma/((phi - x0)**2 + gamma**2))/np.pi
+def lorentzian(phi, gamma, phi0 = 512):
+    '''
+    This function defines a Lorentzian pdf.
+
+    Inputs:
+    ------
+        phi (float)  : phase at which to evaluate the pdf
+        gamma (float): FWHM of the pdf
+        phi0 (float) : mean of the pdf
+
+    Returns:
+    -------
+        (float) lorentzian pdf
+    '''
+    return (gamma/((phi - phi0)**2 + gamma**2))/np.pi
 
 
 def generate(n_samples, n_bins, noise = False):
+    '''
+    This function generates a fake pulse profiles.
+
+    Inputs:
+    -------
+        n_samples (int): the number of profiles wanted
+        n_bins (int)   : the number of bins per sample
+        noise (bool)   : whether to add white noise
+
+    Returns:
+    -------
+        pulses (2D arr): generated pulse profiles
+        locs (2D arr)  : array showing 0 when a bin has a peak and 1 when it doesn't
+        gammas (2D arr): FWHM of sub-pulses in each pulse
+    '''
     max_subpulses = 4
     phi = np.arange(n_bins, dtype = int)
     pulses = np.zeros((n_samples, n_bins))
@@ -42,6 +70,19 @@ def generate(n_samples, n_bins, noise = False):
     return pulses, locs, gammas
 
 def generate_dummy(n_samples, n_bins):
+    '''
+    This function generates a one-component pulse profile.
+
+    Inputs:
+    -------
+        n_samples (int): the number of profiles wanted
+        n_bins (int)   : the number of bins per sample
+
+    Returns:
+    -------
+        pulses (2D arr): generated pulse profiles
+        locs (1D arr)  : location of each peak in phase-space
+    '''
     phi = np.linspace(0, 1, 1024)
     pulses = np.zeros((n_samples, n_bins))
     locs = np.zeros(n_samples)
@@ -63,6 +104,19 @@ def generate_dummy(n_samples, n_bins):
     return pulses, locs
 
 def generate_class(n_samples, n_bins):
+    '''
+    This function generates a one-component pulse profile marked with a classifier.
+
+    Inputs:
+    -------
+        n_samples (int): the number of profiles wanted
+        n_bins (int)   : the number of bins per sample
+
+    Returns:
+    -------
+        pulses (2D arr): generated pulse profiles
+        locs (2D arr)  : array showing 0 when a bin has a peak and 1 when it doesn't
+    '''
     phi = np.arange(n_bins, dtype = int)
     pulses = np.zeros((n_samples, n_bins))
     locs = np.zeros((n_samples, n_bins))
