@@ -44,7 +44,13 @@ class Model(object):
         self.architecture = architecture
 
     def device():
+        '''
+        This function determines what device the node is.
 
+        Returns:
+        --------
+            device (torch obj): either a CUDA or a CPU object
+        '''
         if torch.cuda.is_available():
             device = torch.device('cuda')
         else:
@@ -245,11 +251,8 @@ class Model(object):
                 if valid_loss<self.min_valid:  
 
                     self.min_valid = valid_loss
-                    
+                
                     torch.save(model, model_file)
-
-
-
 
                 f = open(loss_file, 'a')
                 f.write('%d %.5e %.5e\n'%(epoch, train_loss, valid_loss))
