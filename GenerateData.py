@@ -39,7 +39,6 @@ def generate(n_samples, n_bins, noise = False):
         pulses[i] = pulse
         locs[i, 512] = 1
         gammas[i, 0] = gamma
-    print(gammas)
     return pulses, locs, gammas
 
 def generate_dummy(n_samples, n_bins):
