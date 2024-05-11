@@ -133,18 +133,6 @@ class Model(object):
         return nn.Sequential(*layers)
     
         
-    def RNN(self, trial):
-        
-        #use optuna to predict best number of hidden layers
-        n_layers = trial.suggest_int("n_layers", 1, self.max_layers)
-        log.info(f"Created a model with {n_layers} hidden layers.")
-        
-        in_features = self.input_size
-        out_features = trial.suggest_int("n_units_l{}".format(1), 4, self.max_neurons_layers)
-        
-        rnn = nn.GRU(in_features)
-    
-        return rnn
 
     def __call__(self, trial):
         #create model
