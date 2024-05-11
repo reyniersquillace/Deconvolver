@@ -17,6 +17,8 @@ def args():
         pulse (arr) : the array to be evaluated
         n_test (int): the number of test pulses to evaluate
     '''
+
+    #call the parser
     parser = argparse.ArgumentParser(
             prog = "CallModel",
             description = "This progam evaluates a saved model over a number of pulses.",
@@ -26,6 +28,8 @@ def args():
     parser.add_argument('setting') 
     parser.add_argument('third_arg')
     args = parser.parse_args()
+
+    #figure out what the third argument should be based on the second
     if args.setting == 'use':
         pulse_data = args.third_arg
         pulse = np.load(pulse_data)
@@ -44,7 +48,8 @@ def test(model, n_test):
         model (str): the name of the .pt file containing the PyTorch model
         n_test (int): the number of fake pulses on which to test the model
     '''
-    
+
+    #figure out what kind of model we're dealing with
     if model[-2:] == 'pt':
         m = torch.load(model)
         m.eval()
@@ -52,6 +57,7 @@ def test(model, n_test):
 
         with torch.no_grad():
             for i in range(n_test):
+                #evaluate each test pulse
                 X_sample = test_pulses[i]
                 X_sample = torch.tensor(X_sample, dtype=torch.float32)
                 y_pred = m(X_sample)[0].item()
@@ -66,7 +72,7 @@ def test(model, n_test):
         
         with open(model, 'rb') as f:
             clf = pickle.load(f)
-
+        #figure out if this is a peak locator or a FWHM predictor
         if model[13:17] == 'Mult':
             for i in range(n_test):
                 y_pred = np.where(clf.predict([pulses[i]]) == 1)[1]
@@ -94,6 +100,7 @@ def use(model, pulse):
         model (str): the name of the file containing the model
         pulse (arr): a pulse profile
     '''
+    #what model type is this
     if model[-2:] == 'pt':
         m = torch.load(model)
         m.eval()
