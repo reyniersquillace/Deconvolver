@@ -1,4 +1,5 @@
-#this code was written using Jonah Rose's code as a guide
+#this code was modified from Jonah Rose's code. I heavily restructured it but the ways of accessing torch functionality
+#is mostly from him.
 
 import torch.nn as nn
 import torch.optim as optim
