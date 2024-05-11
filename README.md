@@ -7,11 +7,11 @@ This code was designed with the decomposition of multi-pulse radio transient pro
 <h1> Dependencies </h1>
 
 
-<li>`numpy`</li>
-<li>`matplotlib`</li>
-<li>`sklearn`</li>
-<li>`pytorch`</li>
-<li>`optuna</li>
+<li> numpy </li>
+<li> matplotlib </li>
+<li> sklearn </li>
+<li> pytorch </li>
+<li> optuna </li>
 
 <h1>Usage</h1>
 In order to use a model, clone this repo. Then, in your command line, type:
