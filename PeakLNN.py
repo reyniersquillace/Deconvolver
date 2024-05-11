@@ -1,4 +1,4 @@
-#this code was written using Jonah Rose's code as a guide
+#training parameters from Jonah Rose, mostly
 
 import argparse
 import numpy as np
@@ -14,7 +14,7 @@ log.basicConfig(level=log.NOTSET)
 max_layers         = 5
 max_neurons_layers = 2000
 
-#training parameters
+#training parameters MOSTLY FROM JONAH THANK YOU JONAH
 output_size = 2 #posterior mean and error
 batch_size = 32
 epochs     = 200
