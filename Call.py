@@ -90,8 +90,7 @@ def use(model, pulse):
         m.eval()
 
         with torch.no_grad():
-            X_sample = pulses[i]
-            X_sample = torch.tensor(X_sample, dtype=torch.float32)
+            X_sample = torch.tensor(pulse, dtype=torch.float32)
             y_pred = m(X_sample)[0].item()
             y_pred_err = m(X_sample)[1].item()
             print(f"Predicted y: {y_pred} +/- {y_pred_err}")
@@ -100,7 +99,7 @@ def use(model, pulse):
 
         with open(model, 'rb') as f:
             clf = pickle.load(f)
-            y_pred = np.where(clf.predict(pulse) == 1)[1]
+            y_pred = np.where(clf.predict([pulse]) == 1)[1]
             print(f"Predicted y: {y_pred}")
     else:
         raise Exception('What on earth did you just ask me to load?')
